@@ -1,3 +1,6 @@
+
+
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -5,10 +8,14 @@ public class RectanglesFrame extends JFrame {
 
     private int maxBallSize = 100;
     private int minBallSize = 30;
-    private int ballAnimationSize = 5;
-    private int animationDelay = 25;
+    private double ballAnimationSize = 0.01;
+    private int animationDelay = 16;
     private int ballSize = 100;
     private int direction = 1;
+    
+    private double size = 1;
+    private double ballPosX = 0.5;
+    private double ballPosY = 0.5;
 
     public RectanglesFrame() {
         this.setTitle("Connected Rectangles");
@@ -18,15 +25,15 @@ public class RectanglesFrame extends JFrame {
         this.setVisible(true);
         Timer timer = new Timer(animationDelay, e -> {
             if (direction == 1){
-                ballSize -= ballAnimationSize;
+                size -= ballAnimationSize;
                 repaint();
-                if (ballSize <= minBallSize) {
+                if ((int)(ballSize * size) <= minBallSize) {
                     direction = -1;
                 }
             } else {
-                ballSize += ballAnimationSize;
+                size += ballAnimationSize;
                 repaint();
-                if (ballSize >= maxBallSize) {
+                if ((int)(ballSize * size) >= maxBallSize) {
                     direction = 1;
                 }
             }
@@ -54,13 +61,7 @@ public class RectanglesFrame extends JFrame {
             double scaleDecrease = 1.5;
             int rectWidth = (int) (width / scaleDecrease);
             int rectHeight = (int) (height / scaleDecrease);
-
-            int ballX = (width - ballSize) / 2;
-            int ballY = (height - ballSize) / 2;
-
-            // Draw the ball
-            g.fillOval(ballX, ballY, ballSize, ballSize);
-
+            
             int outerX = rectWidth;
             int outerY = rectHeight;
 
@@ -76,11 +77,28 @@ public class RectanglesFrame extends JFrame {
 
             int innerX = (int) (rectWidth * 1.5);
             int innerY = (int) (rectHeight * 1.5);
+            
+            int[] cornerInner0 = {(width - innerX) / 2, (height - innerY) / 2};
+            int[] cornerInner1 = {(width - innerX) / 2, (height - innerY) / 2 + innerY};
+            int[] cornerInner2 = {(width - innerX) / 2 + innerX, (height - innerY) / 2};
+            int[] cornerInner3 = {(width - innerX) / 2 + innerX, (height - innerY) / 2 + innerY};
+            
+            int[] cornerOuter0 = {(width - outerX) / 2, (height - outerY) / 2};
+            int[] cornerOuter1 = {(width - outerX) / 2, (height - outerY) / 2 + outerY};
+            int[] cornerOuter2 = {(width - outerX) / 2 + outerX, (height - outerY) / 2};
+            int[] cornerOuter3 = {(width - outerX) / 2 + outerX, (height - outerY) / 2 + outerY};
+            
 
-            g.drawLine((width - innerX) / 2, (height - innerY) / 2, (width - outerX) / 2, (height - outerY) / 2);
-            g.drawLine((width - innerX) / 2, (height - innerY) / 2 + innerY, (width - outerX) / 2, (height - outerY) / 2 + outerY);
-            g.drawLine((width - innerX) / 2 + innerX, (height - innerY) / 2, (width - outerX) / 2 + outerX, (height - outerY) / 2);
-            g.drawLine((width - innerX) / 2 + innerX, (height - innerY) / 2 + innerY, (width - outerX) / 2 + outerX, (height - outerY) / 2 + outerY);
+            g.drawLine(cornerInner0[0], cornerInner0[1], cornerOuter0[0], cornerOuter0[1]);
+            g.drawLine(cornerInner1[0], cornerInner1[1], cornerOuter1[0], cornerOuter1[1]);
+            g.drawLine(cornerInner2[0], cornerInner2[1], cornerOuter2[0], cornerOuter2[1]);
+            g.drawLine(cornerInner3[0], cornerInner3[1], cornerOuter3[0], cornerOuter3[1]);
+            
+            
+            int ballX = ((int)(width*(1 -size)) - (int)(ballSize * size)) / 2;
+            int ballY = ((int)(height*(1 -size)) - (int)(ballSize * size)) / 2;
+
+            g.fillOval(ballX, ballY, (int)(ballSize * size), (int)(ballSize * size));
         }
     }
 }
