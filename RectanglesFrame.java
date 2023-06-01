@@ -4,6 +4,9 @@ import java.awt.*;
 public class RectanglesFrame extends JFrame {
 
     private int maxBallSize = 100;
+    private int minBallSize = 30;
+    private int ballAnimationSize = 5;
+    private int animationDelay = 25;
     private int ballSize = 100;
     private int direction = 1;
 
@@ -13,15 +16,15 @@ public class RectanglesFrame extends JFrame {
         this.setSize(1000, 700);
         this.getContentPane().setBackground(new Color(0x000000));
         this.setVisible(true);
-        Timer timer = new Timer(50, e -> {
+        Timer timer = new Timer(animationDelay, e -> {
             if (direction == 1){
-                ballSize -= 10;
+                ballSize -= ballAnimationSize;
                 repaint();
-                if (ballSize <= 10) {
+                if (ballSize <= minBallSize) {
                     direction = -1;
                 }
             } else {
-                ballSize += 10;
+                ballSize += ballAnimationSize;
                 repaint();
                 if (ballSize >= maxBallSize) {
                     direction = 1;
