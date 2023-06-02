@@ -10,18 +10,36 @@ class lineDrawer {
         }
     }
 
-    static void drawPlayer(int x, int y, int width, int height, Graphics g){
-        int trueX = x - 9;
-        int trueY = y - 30;
-
+    static int [] drawCursor(int x, int y, int width, int height, Graphics g){
         g.setColor(Color.RED);
-        lineDrawer.thickRect(5, (int)(trueX - width/2), (int)(trueY - height/2), width, height, g);
-        g.drawLine(trueX, trueY - height/2, trueX, trueY + height/2);
-        g.drawLine(trueX - width/2, trueY, trueX + width/2, trueY);
+        lineDrawer.thickRect(5, (int)(x - width/2), (int)(y - height/2), width, height, g);
+        g.drawLine(x, y - height/2, x, y + height/2);
+        g.drawLine(x - width/2, y, x + width/2, y);
+
+        int[] coords = {x, y};
+        return coords;
+    }
+}
+
+class colisionCheck{
+    static boolean onCursor(int cursorX, int cursorY, int cursorWidth, int cursorHeight, int ballX, int ballY, int ballSize){
+        ballX += ballSize/2;
+        ballY += ballSize/2;
+        
+        cursorX -= cursorWidth/2;
+        cursorY -= cursorHeight/2;
+
+        double closestX = Math.max(cursorX, Math.min(ballX, cursorX + cursorWidth));
+        double closestY = Math.max(cursorY, Math.min(ballY, cursorY + cursorHeight));
+        double distance = Math.sqrt(Math.pow(ballX - closestX, 2) + Math.pow(ballY - closestY, 2));
+
+        return distance <= ballSize/2;
     }
 }
 
 public class RectanglesFrame extends JFrame {
+
+    private boolean gameOver = false;
 
     private int screenWidth = 1000;
     private int screenHeight = 700;
@@ -34,17 +52,19 @@ public class RectanglesFrame extends JFrame {
     private int direction = 1;
     
     private double posZ = 1;
-    private double ballPosX = 0.2;
-    private double ballPosY = 0.2;
+    private double ballPosX = 0;
+    private double ballPosY = 0;
 
-    private int ballTrueX = (int)((screenWidth-ballSize)* ballPosX);
-    private int ballTrueY = (int)((screenHeight-ballSize)* ballPosY);
+    private int ballx = (int)((screenWidth-ballSize)* ballPosX);
+    private int bally = (int)((screenHeight-ballSize)* ballPosY);
     
     private int directionX = 1;
     private int directionY = 1;
 
     private int mouseX;
     private int mouseY;
+    private int cursorWidth = (int)(screenWidth/scaleDecrease/5);
+    private int cursorHeight = (int)(screenHeight/scaleDecrease/4.5);
 
     public RectanglesFrame() {
         this.setTitle("Connected Rectangles");
@@ -53,23 +73,6 @@ public class RectanglesFrame extends JFrame {
         this.getContentPane().setBackground(new Color(0x000000));
         this.setVisible(true);
         Timer timer = new Timer(animationDelay, e -> {
-
-
-            // if (directionX == 1) {
-            //     ballPosX -= ballAnimationSize;
-            //     if (ballPosX <= 0) directionX = -1;
-            // } else {
-            //     ballPosX += ballAnimationSize;
-            //     if (ballPosX >= 1) directionX = 1;
-            // }
-
-            // if (directionY == 1){
-            //     ballPosY -= ballAnimationSize;
-            //     if (ballPosY <= 0) directionY = -1;
-            // } else {
-            //     ballPosY += ballAnimationSize;
-            //     if (ballPosY >= 1) directionY = 1;
-            // }
 
             if (direction == 1){
                 posZ -= ballAnimationSize * posZ;
@@ -82,28 +85,31 @@ public class RectanglesFrame extends JFrame {
                 repaint();
                 if (posZ >= 1) {
                     direction = 1;
-                    
+                    boolean over = colisionCheck.onCursor(mouseX, mouseY, cursorWidth, cursorHeight, ballx, bally, ballSize);
+                    System.out.println(over);
+                    if(!over){
+                        gameOver = true;
+                    }
                 }
             }
         });
-        timer.start();
+        
+        if (gameOver){
+            timer.stop();   
+        } else{
+            timer.start();
+        }
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
-                mouseX = e.getX();
-                mouseY = e.getY();
+                mouseX = e.getX() - 9;
+                mouseY = e.getY() - 30;
                 repaint();
             }
         });
 
         RectanglesComponent component = new RectanglesComponent();
         this.add(component);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new RectanglesFrame();
-        });
     }
 
     private class RectanglesComponent extends JComponent {
@@ -158,19 +164,25 @@ public class RectanglesFrame extends JFrame {
             g.drawLine(cornerInner3[0], cornerInner3[1], cornerOuter3[0], cornerOuter3[1]);
 
 
-            ballTrueX = (int)(activeRecX + ((activeRecWidth - (ballSize * posZ)) * ballPosX));
-            ballTrueY = (int)(activeRecY + ((activeRecHeight - (ballSize * posZ)) * ballPosY));
+            ballx = (int)(activeRecX + ((activeRecWidth - (ballSize * posZ)) * ballPosX));
+            bally = (int)(activeRecY + ((activeRecHeight - (ballSize * posZ)) * ballPosY));
 
             g.setColor(new Color(0x09c7ed));
-            g.fillOval(ballTrueX, ballTrueY, (int)(ballSize * posZ), (int)(ballSize * posZ));
+            g.fillOval(ballx, bally, (int)(ballSize * posZ), (int)(ballSize * posZ));
             g.setColor(new Color(0x32CD32));
 
             g.setColor(Color.RED);
-            int playerWidth = (int)(screenWidth/scaleDecrease/5);
-            int playerHeight = (int)(screenHeight/scaleDecrease/4.5);
 
-            lineDrawer.drawPlayer(mouseX, mouseY, playerWidth, playerHeight, g);
-            
+            int[] cursorCoords = lineDrawer.drawCursor(mouseX, mouseY, cursorWidth, cursorHeight, g);
+      
         }
     }
+
+
+     public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new RectanglesFrame();
+        });
+    }
+
 }
