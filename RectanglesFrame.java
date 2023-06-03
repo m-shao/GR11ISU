@@ -10,19 +10,16 @@ class lineDrawer {
         }
     }
 
-    static int [] drawCursor(int x, int y, int width, int height, Graphics g){
+    static void drawCursor(int x, int y, int width, int height, Graphics g){
         g.setColor(Color.RED);
         lineDrawer.thickRect(5, (int)(x - width/2), (int)(y - height/2), width, height, g);
         g.drawLine(x, y - height/2, x, y + height/2);
         g.drawLine(x - width/2, y, x + width/2, y);
-
-        int[] coords = {x, y};
-        return coords;
     }
 }
 
 class colisionCheck{
-    static boolean onCursor(int cursorX, int cursorY, int cursorWidth, int cursorHeight, int ballX, int ballY, int ballSize){
+    static double[] onCursor(int cursorX, int cursorY, int cursorWidth, int cursorHeight, int ballX, int ballY, int ballSize){
         ballX += ballSize/2;
         ballY += ballSize/2;
         
@@ -33,7 +30,18 @@ class colisionCheck{
         double closestY = Math.max(cursorY, Math.min(ballY, cursorY + cursorHeight));
         double distance = Math.sqrt(Math.pow(ballX - closestX, 2) + Math.pow(ballY - closestY, 2));
 
-        return distance <= ballSize/2;
+        boolean collided = distance <= ballSize/2;
+
+        double [] distanceArr = new double[2];
+        if (collided){
+            cursorX += cursorWidth/2;
+            cursorY += cursorHeight/2;
+            distanceArr[0] = ballX - cursorX;
+            distanceArr[1] = ballY - cursorY;
+        } else {
+            distanceArr = new double[0];
+        }
+        return distanceArr;
     }
 }
 
@@ -46,25 +54,26 @@ public class RectanglesFrame extends JFrame {
 
     private double scaleDecrease = 1.5;
     
-    private double ballAnimationSize = 0.025;
+    private double ballAnimationSize = 0.035;
     private int animationDelay = 16;
     private int ballSize = 100;
     private int direction = 1;
     
     private double posZ = 1;
-    private double ballPosX = 0;
-    private double ballPosY = 0;
+    private double ballPosX = 1;
+    private double ballPosY = 1;
 
     private int ballx = (int)((screenWidth-ballSize)* ballPosX);
     private int bally = (int)((screenHeight-ballSize)* ballPosY);
-    
-    private int directionX = 1;
-    private int directionY = 1;
 
     private int mouseX;
     private int mouseY;
     private int cursorWidth = (int)(screenWidth/scaleDecrease/5);
     private int cursorHeight = (int)(screenHeight/scaleDecrease/4.5);
+
+    private double[] hitPosition = new double[0];
+    private double hitAngleX = 0;
+    private double hitAngleY = 0;
 
     public RectanglesFrame() {
         this.setTitle("Connected Rectangles");
@@ -73,6 +82,20 @@ public class RectanglesFrame extends JFrame {
         this.getContentPane().setBackground(new Color(0x000000));
         this.setVisible(true);
         Timer timer = new Timer(animationDelay, e -> {
+
+            if (ballPosX > 1) {
+                hitAngleX *= -1;
+            } else if (ballPosX < 0) {
+                hitAngleX *= -1;
+            }
+            if (ballPosY > 1) {
+                hitAngleY *= -1;
+            } else if (ballPosY < 0) {
+                hitAngleY *= -1;
+            }
+
+            ballPosX += hitAngleX * 0.01;
+            ballPosY += hitAngleY * 0.01;
 
             if (direction == 1){
                 posZ -= ballAnimationSize * posZ;
@@ -85,11 +108,17 @@ public class RectanglesFrame extends JFrame {
                 repaint();
                 if (posZ >= 1) {
                     direction = 1;
-                    boolean over = colisionCheck.onCursor(mouseX, mouseY, cursorWidth, cursorHeight, ballx, bally, ballSize);
-                    System.out.println(over);
-                    if(!over){
+                    hitPosition = colisionCheck.onCursor(mouseX, mouseY, cursorWidth, cursorHeight, ballx, bally, ballSize);
+                    if (hitPosition.length > 1){
+                        hitAngleX = hitPosition[0] / (cursorWidth / 2);
+                        hitAngleY = hitPosition[1] / (cursorHeight / 2);
+                        
+                    } else {
+                        int hello = 0;
+                        System.out.println(1/hello);
                         gameOver = true;
                     }
+                    
                 }
             }
         });
@@ -173,7 +202,7 @@ public class RectanglesFrame extends JFrame {
 
             g.setColor(Color.RED);
 
-            int[] cursorCoords = lineDrawer.drawCursor(mouseX, mouseY, cursorWidth, cursorHeight, g);
+            lineDrawer.drawCursor(mouseX, mouseY, cursorWidth, cursorHeight, g);
       
         }
     }
