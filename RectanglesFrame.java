@@ -55,6 +55,8 @@ public class RectanglesFrame extends JFrame {
     private double scaleDecrease = 1.5;
     
     private double ballAnimationSize = 0.035;
+    private double ballAnimationSpeedIncrease = 0.01;
+    private int ballAnimationCycle = 0;
     private int animationDelay = 16;
     private int ballSize = 100;
     private int direction = 1;
@@ -68,12 +70,12 @@ public class RectanglesFrame extends JFrame {
 
     private int mouseX;
     private int mouseY;
-    private int cursorWidth = (int)(screenWidth/scaleDecrease/5);
-    private int cursorHeight = (int)(screenHeight/scaleDecrease/4.5);
+    private int cursorWidth = (int)(screenWidth/scaleDecrease/6);
+    private int cursorHeight = (int)(screenHeight/scaleDecrease/5.5);
 
     private double[] hitPosition = new double[0];
-    private double hitAngleX = 0;
-    private double hitAngleY = 0;
+    private double hitAngleX = 0.5;
+    private double hitAngleY = 0.5;
 
     public RectanglesFrame() {
         this.setTitle("Connected Rectangles");
@@ -94,6 +96,11 @@ public class RectanglesFrame extends JFrame {
                 hitAngleY *= -1;
             }
 
+            if (ballAnimationCycle == 5){
+                ballAnimationSize += ballAnimationSpeedIncrease;
+                ballAnimationCycle = 0;
+            }
+
             ballPosX += hitAngleX * 0.01;
             ballPosY += hitAngleY * 0.01;
 
@@ -102,6 +109,7 @@ public class RectanglesFrame extends JFrame {
                 repaint();
                 if (posZ < 1/Math.pow(scaleDecrease, 4)) {
                     direction = -1;
+                    ballAnimationCycle++;
                 }
             } else {
                 posZ += ballAnimationSize * posZ;
