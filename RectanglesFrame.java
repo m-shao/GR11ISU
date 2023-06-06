@@ -10,9 +10,8 @@ class lineDrawer {
         }
     }
 
-    static void drawCursor(int x, int y, int width, int height, Graphics g){
-        g.setColor(Color.RED);
-        lineDrawer.thickRect(5, (int)(x - width/2), (int)(y - height/2), width, height, g);
+    static void drawCursor(int x, int y, int width, int height, Graphics g, int thickness){
+        lineDrawer.thickRect(thickness, (int)(x - width/2), (int)(y - height/2), width, height, g);
         g.drawLine(x, y - height/2, x, y + height/2);
         g.drawLine(x - width/2, y, x + width/2, y);
     }
@@ -43,6 +42,21 @@ class colisionCheck{
         }
         return distanceArr;
     }
+
+    static int[] checkBoudries(int ballX, int ballY, int ballSize, int leftBound, int rightBound, int topBound, int bottomBound, int cursorWidth, int cursorHeight){
+        int[] hitPosition = {ballX, ballY};
+        if (ballX < leftBound + cursorWidth/2){
+            hitPosition[0] = leftBound + cursorWidth/2;
+        } else if (ballX > rightBound - cursorWidth/2){
+            hitPosition[0] = rightBound - cursorWidth/2;
+        }
+        if (ballY < bottomBound + cursorHeight/2){
+            hitPosition[1] = bottomBound + cursorHeight/2;
+        } else if (ballY > topBound - cursorHeight/2){
+            hitPosition[1] = topBound - cursorHeight/2;
+        }
+        return hitPosition;
+    }
 }
 
 public class RectanglesFrame extends JFrame {
@@ -53,6 +67,7 @@ public class RectanglesFrame extends JFrame {
     private int screenHeight = 700;
 
     private double scaleDecrease = 1.5;
+    private double angleCoefficient = 1.5;
     
     private double ballAnimationSize = 0.035;
     private double ballAnimationSpeedIncrease = 0.01;
@@ -62,8 +77,8 @@ public class RectanglesFrame extends JFrame {
     private int direction = 1;
     
     private double posZ = 1;
-    private double ballPosX = 1;
-    private double ballPosY = 1;
+    private double ballPosX = 0.5;
+    private double ballPosY = 0.5;
 
     private int ballx = (int)((screenWidth-ballSize)* ballPosX);
     private int bally = (int)((screenHeight-ballSize)* ballPosY);
@@ -72,10 +87,12 @@ public class RectanglesFrame extends JFrame {
     private int mouseY;
     private int cursorWidth = (int)(screenWidth/scaleDecrease/6);
     private int cursorHeight = (int)(screenHeight/scaleDecrease/5.5);
+    private int aiWidth = (int)((screenWidth/scaleDecrease/6)/Math.pow(scaleDecrease, 4));
+    private int aiHeight = (int)((screenHeight/scaleDecrease/5.5)/Math.pow(scaleDecrease, 4));
 
     private double[] hitPosition = new double[0];
-    private double hitAngleX = 0.5;
-    private double hitAngleY = 0.5;
+    private double hitAngleX = 0;
+    private double hitAngleY = 0;
 
     public RectanglesFrame() {
         this.setTitle("Connected Rectangles");
@@ -86,13 +103,17 @@ public class RectanglesFrame extends JFrame {
         Timer timer = new Timer(animationDelay, e -> {
 
             if (ballPosX > 1) {
+                ballPosX = 1;
                 hitAngleX *= -1;
             } else if (ballPosX < 0) {
+                ballPosX = 0;
                 hitAngleX *= -1;
             }
             if (ballPosY > 1) {
+                ballPosY = 1;
                 hitAngleY *= -1;
             } else if (ballPosY < 0) {
+                ballPosY = 0;
                 hitAngleY *= -1;
             }
 
@@ -101,8 +122,8 @@ public class RectanglesFrame extends JFrame {
                 ballAnimationCycle = 0;
             }
 
-            ballPosX += hitAngleX * 0.01;
-            ballPosY += hitAngleY * 0.01;
+            ballPosX += hitAngleX * 0.02;
+            ballPosY += hitAngleY * 0.02;
 
             if (direction == 1){
                 posZ -= ballAnimationSize * posZ;
@@ -122,8 +143,7 @@ public class RectanglesFrame extends JFrame {
                         hitAngleY = hitPosition[1] / (cursorHeight / 2);
                         
                     } else {
-                        int hello = 0;
-                        System.out.println(1/hello);
+                        System.out.println(1/0);
                         gameOver = true;
                     }
                     
@@ -171,8 +191,8 @@ public class RectanglesFrame extends JFrame {
                 rectHeight = (int) (rectHeight / scaleDecrease);
             }
 
-            int innerX = (int) (rectWidth * 1.5);
-            int innerY = (int) (rectHeight * 1.5);
+            int innerX = (int) (rectWidth * angleCoefficient);
+            int innerY = (int) (rectHeight * angleCoefficient);
             
             int[] cornerInner0 = {(width - innerX) / 2, (height - innerY) / 2};
             int[] cornerInner1 = {(width - innerX) / 2, (height - innerY) / 2 + innerY};
@@ -204,13 +224,22 @@ public class RectanglesFrame extends JFrame {
             ballx = (int)(activeRecX + ((activeRecWidth - (ballSize * posZ)) * ballPosX));
             bally = (int)(activeRecY + ((activeRecHeight - (ballSize * posZ)) * ballPosY));
 
+            int smallWidth = cornerInner3[0] - cornerInner0[0];
+            int smallHeight = cornerInner3[1] - cornerInner0[1];
+
+            g.setColor(Color.BLUE);
+            int [] aiCoords = colisionCheck.checkBoudries((int)(cornerInner0[0] + (smallWidth * ballPosX)), (int)(cornerInner0[1] + (smallHeight * ballPosY)), ballSize, cornerInner0[0], cornerInner3[0], cornerInner3[1], cornerInner0[1], aiWidth, aiHeight);
+            int aiX = aiCoords[0];
+            int aiY = aiCoords[1];
+
+            lineDrawer.drawCursor(aiX, aiY, aiWidth, aiHeight, g, 2);
+
             g.setColor(new Color(0x09c7ed));
             g.fillOval(ballx, bally, (int)(ballSize * posZ), (int)(ballSize * posZ));
             g.setColor(new Color(0x32CD32));
 
             g.setColor(Color.RED);
-
-            lineDrawer.drawCursor(mouseX, mouseY, cursorWidth, cursorHeight, g);
+            lineDrawer.drawCursor(mouseX, mouseY, cursorWidth, cursorHeight, g, 5);
       
         }
     }
