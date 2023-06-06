@@ -94,6 +94,9 @@ public class Isu extends JFrame {
     private int aiTargetY;
     int aiX = screenWidth/2;
     int aiY = screenHeight/2;
+    int aiSpeed = 5;
+    
+    private Timer timer;
 
     private int mouseX;
     private int mouseY;
@@ -112,7 +115,9 @@ public class Isu extends JFrame {
         this.setSize(screenWidth, screenHeight);
         this.getContentPane().setBackground(new Color(0x000000));
         this.setVisible(true);
-        Timer timer = new Timer(animationDelay, e -> {
+        
+        
+        timer = new Timer(animationDelay, e -> {
 
             if (ballPosX > 1) {
                 ballPosX = 1;
@@ -140,13 +145,24 @@ public class Isu extends JFrame {
             if (direction == 1){
                 posZ -= ballAnimationSize * posZ;
                 repaint();
+                revalidate();
                 if (posZ < 1/Math.pow(scaleDecrease, 4)) {
                     direction = -1;
                     ballAnimationCycle++;
+                    hitPosition = colisionCheck.onCursor(aiX, aiY, aiWidth, aiHeight, ballx, bally, (int)(ballSize * posZ));
+                    if (hitPosition.length > 1){
+                        hitAngleX = hitPosition[0] / (cursorWidth / 2) * -1;
+                        hitAngleY = hitPosition[1] / (cursorHeight / 2) * -1;
+                        
+                    } else {
+                        System.out.println("gameover");
+                        timer.stop();
+                    }
                 }
             } else {
                 posZ += ballAnimationSize * posZ;
                 repaint();
+                revalidate();
                 if (posZ >= 1) {
                     direction = 1;
                     hitPosition = colisionCheck.onCursor(mouseX, mouseY, cursorWidth, cursorHeight, ballx, bally, ballSize);
@@ -155,25 +171,21 @@ public class Isu extends JFrame {
                         hitAngleY = hitPosition[1] / (cursorHeight / 2);
                         
                     } else {
-                        System.out.println(1/0);
-                        gameOver = true;
-                    }
+                        timer.stop();                    }
                     
                 }
             }
         });
         
-        if (gameOver){
-            timer.stop();   
-        } else{
-            timer.start();
-        }
+        
+        timer.start();
+        
+        
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
                 mouseX = e.getX() - 9;
                 mouseY = e.getY() - 30;
-                repaint();
             }
         });
 
@@ -244,17 +256,17 @@ public class Isu extends JFrame {
             int aiTargetX = aiCoords[0];
             int aiTargetY = aiCoords[1];
             
-            if (aiX - aiTargetX != 0){
-                aiX = aiX + ((aiX - aiTargetX) / Math.abs(aiX - aiTargetX) * -1);
+            if (aiX - aiTargetX < -5 || aiX - aiTargetX > 5){
+                aiX = aiX + ((aiX - aiTargetX) / Math.abs(aiX - aiTargetX) * -1) * aiSpeed;
             }
-            if (aiY - aiTargetY != 0){
-                aiY = aiY + ((aiY - aiTargetY) / Math.abs(aiY - aiTargetY) * -1);
+            if (aiY - aiTargetY < -5 ||  aiY - aiTargetY > 5){
+                aiY = aiY + ((aiY - aiTargetY) / Math.abs(aiY - aiTargetY) * -1) * aiSpeed;
             }
             
-            
-            System.out.println(aiX + " " + aiY);
-            
-            lineDrawer.drawCursor(aiX, aiY, aiWidth, aiHeight, g, 2);
+//            
+//            System.out.println((aiX - aiTargetX) / Math.abs(aiX - aiTargetX) * -1);
+//            
+            lineDrawer.drawCursor(aiX - aiWidth/2, aiY - aiHeight/2, aiWidth, aiHeight, g, 2);
 
             g.setColor(new Color(0x09c7ed));
             g.fillOval(ballx, bally, (int)(ballSize * posZ), (int)(ballSize * posZ));
