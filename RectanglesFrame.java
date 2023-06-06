@@ -1,3 +1,10 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package isu;
+
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import javax.swing.*;
@@ -59,7 +66,7 @@ class colisionCheck{
     }
 }
 
-public class RectanglesFrame extends JFrame {
+public class Isu extends JFrame {
 
     private boolean gameOver = false;
 
@@ -82,6 +89,11 @@ public class RectanglesFrame extends JFrame {
 
     private int ballx = (int)((screenWidth-ballSize)* ballPosX);
     private int bally = (int)((screenHeight-ballSize)* ballPosY);
+    
+    private int aiTargetX;
+    private int aiTargetY;
+    int aiX = screenWidth/2;
+    int aiY = screenHeight/2;
 
     private int mouseX;
     private int mouseY;
@@ -94,7 +106,7 @@ public class RectanglesFrame extends JFrame {
     private double hitAngleX = 0;
     private double hitAngleY = 0;
 
-    public RectanglesFrame() {
+    public Isu() {
         this.setTitle("Connected Rectangles");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(screenWidth, screenHeight);
@@ -229,9 +241,19 @@ public class RectanglesFrame extends JFrame {
 
             g.setColor(Color.BLUE);
             int [] aiCoords = colisionCheck.checkBoudries((int)(cornerInner0[0] + (smallWidth * ballPosX)), (int)(cornerInner0[1] + (smallHeight * ballPosY)), ballSize, cornerInner0[0], cornerInner3[0], cornerInner3[1], cornerInner0[1], aiWidth, aiHeight);
-            int aiX = aiCoords[0];
-            int aiY = aiCoords[1];
-
+            int aiTargetX = aiCoords[0];
+            int aiTargetY = aiCoords[1];
+            
+            if (aiX - aiTargetX != 0){
+                aiX = aiX + ((aiX - aiTargetX) / Math.abs(aiX - aiTargetX) * -1);
+            }
+            if (aiY - aiTargetY != 0){
+                aiY = aiY + ((aiY - aiTargetY) / Math.abs(aiY - aiTargetY) * -1);
+            }
+            
+            
+            System.out.println(aiX + " " + aiY);
+            
             lineDrawer.drawCursor(aiX, aiY, aiWidth, aiHeight, g, 2);
 
             g.setColor(new Color(0x09c7ed));
@@ -247,7 +269,7 @@ public class RectanglesFrame extends JFrame {
 
      public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new RectanglesFrame();
+            new Isu();
         });
     }
 
