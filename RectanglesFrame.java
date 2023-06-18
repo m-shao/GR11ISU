@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package isu;
 
 import java.awt.event.MouseEvent;
@@ -74,7 +69,6 @@ public class Isu extends JFrame {
     private int screenHeight = 700;
 
     private double scaleDecrease = 1.5;
-    private double angleCoefficient = 1.5;
     
     private double ballAnimationSize = 0.035;
     private double ballAnimationSpeedIncrease = 0.01;
@@ -94,7 +88,7 @@ public class Isu extends JFrame {
     private int aiTargetY;
     int aiX = screenWidth/2;
     int aiY = screenHeight/2;
-    int aiSpeed = 5;
+    int aiSpeed = 3;
     
     private Timer timer;
 
@@ -118,7 +112,6 @@ public class Isu extends JFrame {
         
         
         timer = new Timer(animationDelay, e -> {
-
             if (ballPosX > 1) {
                 ballPosX = 1;
                 hitAngleX *= -1;
@@ -145,11 +138,10 @@ public class Isu extends JFrame {
             if (direction == 1){
                 posZ -= ballAnimationSize * posZ;
                 repaint();
-                revalidate();
                 if (posZ < 1/Math.pow(scaleDecrease, 4)) {
                     direction = -1;
                     ballAnimationCycle++;
-                    hitPosition = colisionCheck.onCursor(aiX, aiY, aiWidth, aiHeight, ballx, bally, (int)(ballSize * posZ));
+                    hitPosition = colisionCheck.onCursor(aiX - aiWidth/2, aiY - aiHeight/2, aiWidth, aiHeight, ballx, bally, (int)(ballSize * posZ));
                     if (hitPosition.length > 1){
                         hitAngleX = hitPosition[0] / (cursorWidth / 2) * -1;
                         hitAngleY = hitPosition[1] / (cursorHeight / 2) * -1;
@@ -162,7 +154,6 @@ public class Isu extends JFrame {
             } else {
                 posZ += ballAnimationSize * posZ;
                 repaint();
-                revalidate();
                 if (posZ >= 1) {
                     direction = 1;
                     hitPosition = colisionCheck.onCursor(mouseX, mouseY, cursorWidth, cursorHeight, ballx, bally, ballSize);
@@ -171,7 +162,8 @@ public class Isu extends JFrame {
                         hitAngleY = hitPosition[1] / (cursorHeight / 2);
                         
                     } else {
-                        timer.stop();                    }
+                        timer.stop(); 
+                    }
                     
                 }
             }
@@ -187,6 +179,7 @@ public class Isu extends JFrame {
                 mouseX = e.getX() - 9;
                 mouseY = e.getY() - 30;
             }
+            
         });
 
         RectanglesComponent component = new RectanglesComponent();
@@ -215,8 +208,8 @@ public class Isu extends JFrame {
                 rectHeight = (int) (rectHeight / scaleDecrease);
             }
 
-            int innerX = (int) (rectWidth * angleCoefficient);
-            int innerY = (int) (rectHeight * angleCoefficient);
+            int innerX = (int) (rectWidth * scaleDecrease);
+            int innerY = (int) (rectHeight * scaleDecrease);
             
             int[] cornerInner0 = {(width - innerX) / 2, (height - innerY) / 2};
             int[] cornerInner1 = {(width - innerX) / 2, (height - innerY) / 2 + innerY};
@@ -268,13 +261,24 @@ public class Isu extends JFrame {
 //            
             lineDrawer.drawCursor(aiX - aiWidth/2, aiY - aiHeight/2, aiWidth, aiHeight, g, 2);
 
+            
             g.setColor(new Color(0x09c7ed));
             g.fillOval(ballx, bally, (int)(ballSize * posZ), (int)(ballSize * posZ));
             g.setColor(new Color(0x32CD32));
 
+            g.setColor(Color.ORANGE);
+            
+            g.fillRect(screenWidth/2 - screenWidth/8, screenHeight/2 - screenHeight/16, screenWidth/4, screenHeight/8);
+            
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 40));
+            g.drawString("Start", screenWidth/2 - 50,screenHeight/2 + 10);
+            g.setColor(new Color(0x32CD32));
+            
+            
             g.setColor(Color.RED);
             lineDrawer.drawCursor(mouseX, mouseY, cursorWidth, cursorHeight, g, 5);
-      
+            
         }
     }
 
